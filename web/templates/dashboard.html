@@ -1,0 +1,133 @@
+{{template "layout" .}}
+
+{{define "title"}}Dashboard{{end}}
+
+{{define "content"}}
+<div class="controls">
+    <div>
+        <label for="from-date">From</label>
+        <input type="date" id="from-date">
+    </div>
+    <div>
+        <label for="to-date">To</label>
+        <input type="date" id="to-date">
+    </div>
+    <div>
+        <label for="resolution">Resolution</label>
+        <select id="resolution">
+            <option value="minute">Minute</option>
+            <option value="hourly">Hourly</option>
+            <option value="daily">Daily</option>
+        </select>
+    </div>
+    <div class="quick-range">
+        <button data-range="12h">Last 12h</button>
+        <button data-range="today" class="active">Today</button>
+        <button data-range="yesterday">Yesterday</button>
+        <button data-range="7d">7d</button>
+        <button data-range="30d">30d</button>
+        <button data-range="90d">90d</button>
+        <button data-range="365d">1y</button>
+        <button data-range="all">All</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.4rem;">
+        <input type="checkbox" id="exclude-ev" style="margin:0;">
+        <label for="exclude-ev" style="font-size:0.85rem;cursor:pointer;">Exclude EV</label>
+    </div>
+</div>
+
+<div id="summary" style="display:none;">
+    <div class="gauge-grid">
+        <div class="gauge-card consumption">
+            <div class="label">Consumption</div>
+            <div class="value" id="sum-consumption">—</div>
+            <div class="unit">kWh</div>
+        </div>
+        <div class="gauge-card generating">
+            <div class="label">Generation</div>
+            <div class="value" id="sum-generation">—</div>
+            <div class="unit">kWh</div>
+        </div>
+        <div class="gauge-card exporting">
+            <div class="label">Grid Export</div>
+            <div class="value" id="sum-export">—</div>
+            <div class="unit">kWh</div>
+        </div>
+        <div class="gauge-card importing">
+            <div class="label">Grid Import</div>
+            <div class="value" id="sum-import">—</div>
+            <div class="unit">kWh</div>
+        </div>
+        <div class="gauge-card diverting">
+            <div class="label">EV Charging</div>
+            <div class="value" id="sum-diverted">—</div>
+            <div class="unit">kWh</div>
+            <div id="ev-detail" style="display:none;font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;"></div>
+        </div>
+        <div class="gauge-card selfuse">
+            <div class="label">Self-Consumption</div>
+            <div class="value" id="sum-selfuse">—</div>
+            <div class="unit">%</div>
+        </div>
+    </div>
+</div>
+
+<div class="status-bar" id="status-bar" style="display:none;">Connecting...</div>
+
+<div id="live-gauges" style="display:none;" class="gauge-grid">
+    <div class="gauge-card consumption">
+        <div class="label">Live Consumption</div>
+        <div class="value" id="consumption-value">—</div>
+        <div class="unit">W</div>
+    </div>
+    <div class="gauge-card generating">
+        <div class="label">Live Solar Generation</div>
+        <div class="value" id="gen-value">—</div>
+        <div class="unit">W</div>
+    </div>
+    <div class="gauge-card exporting" id="card-export">
+        <div class="label">Live Grid Export</div>
+        <div class="value" id="grid-export-value">0</div>
+        <div class="unit">W</div>
+    </div>
+    <div class="gauge-card importing" id="card-import">
+        <div class="label">Live Grid Import</div>
+        <div class="value" id="grid-import-value">0</div>
+        <div class="unit">W</div>
+    </div>
+    <div class="gauge-card">
+        <div class="label">Voltage</div>
+        <div class="value" id="voltage-value">—</div>
+        <div class="unit">V</div>
+    </div>
+    <div class="gauge-card diverting">
+        <div class="label">EV Diversion</div>
+        <div class="value" id="div-value">—</div>
+        <div class="unit">W</div>
+    </div>
+    <div class="gauge-card">
+        <div class="label">Zappi</div>
+        <div class="value" id="mode-value" style="font-size:1.25rem">—</div>
+        <div class="unit"><span id="charge-value">0.0</span> kWh added</div>
+    </div>
+</div>
+
+<div class="chart-container">
+    <canvas id="mainChart"></canvas>
+</div>
+
+<div class="export-links">
+    <strong>Export:</strong>
+    <a href="#" id="export-csv">Download CSV</a>
+    <a href="#" id="export-json">Download JSON</a>
+</div>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/js/chart.min.js"></script>
+<script src="/static/js/chartjs-adapter-date-fns.min.js"></script>
+<script src="/static/js/app.js"></script>
+<script>
+    Gridora.init("{{.Serial}}");
+</script>
+{{end}}

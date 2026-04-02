@@ -1,0 +1,64 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gridora — {{block "title" .}}Dashboard{{end}}</title>
+    <link rel="stylesheet" href="/static/css/pico.min.css">
+    <style>
+        :root {
+            --consumption-orange: #f97316;
+            --generation-green: #22c55e;
+            --export-yellow: #eab308;
+            --import-red: #ef4444;
+            --divert-blue: #3b82f6;
+            --bg-card: #1e1e2e;
+            --border-card: #2e2e3e;
+            --text-muted: #9ca3af;
+        }
+        body { max-width: 1400px; margin: 0 auto; padding: 1rem; }
+        nav { margin-bottom: 1.5rem; }
+        nav ul { list-style: none; padding: 0; display: flex; gap: 1rem; align-items: center; }
+        nav .brand { font-weight: 700; font-size: 1.25rem; margin-right: auto; }
+        .gauge-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .gauge-card { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 8px; padding: 1rem; text-align: center; }
+        .gauge-card .label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .gauge-card .value { font-size: 1.75rem; font-weight: 700; line-height: 1.2; }
+        .gauge-card .unit { font-size: 0.85rem; color: var(--text-muted); }
+        .gauge-card.consumption .value { color: var(--consumption-orange); }
+        .gauge-card.generating .value { color: var(--generation-green); }
+        .gauge-card.exporting .value { color: var(--export-yellow); }
+        .gauge-card.importing .value { color: var(--import-red); }
+        .gauge-card.selfuse .value { color: #e5e7eb; }
+        .gauge-card.diverting .value { color: var(--divert-blue); }
+        .status-bar { font-size: 0.8rem; color: var(--text-muted); text-align: left; margin-bottom: 1rem; }
+        .chart-container { position: relative; height: 400px; margin-bottom: 2rem; }
+        .controls { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+        .controls label { font-size: 0.9rem; }
+        .controls select, .controls input[type="date"] { padding: 0.4rem 0.6rem; }
+        .quick-range { display: flex; gap: 0.5rem; }
+        .quick-range button { padding: 0.3rem 0.8rem; font-size: 0.85rem; cursor: pointer; }
+        .quick-range button.active { background: var(--pico-primary-background); color: #fff; }
+        .export-links { margin-top: 1rem; font-size: 0.9rem; }
+        .export-links a { margin-right: 1rem; }
+        @media (max-width: 600px) {
+            .gauge-grid { grid-template-columns: repeat(2, 1fr); }
+            .chart-container { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li class="brand">Gridora</li>
+        </ul>
+    </nav>
+    <main>
+        {{block "content" .}}{{end}}
+    </main>
+    <script src="/static/js/htmx.min.js"></script>
+    {{block "scripts" .}}{{end}}
+</body>
+</html>
+{{end}}
