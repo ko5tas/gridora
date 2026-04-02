@@ -13,6 +13,10 @@ const Gridora = (() => {
     Chart.defaults.color = '#64748b';
     Chart.defaults.borderColor = '#334155';
 
+    // Clamp negative values to zero for calculations (CT clamp noise).
+    // Raw values are still displayed — this only affects derived numbers.
+    const pos = (v) => Math.max(0, v || 0);
+
     let chart = null;
     let serial = '';
     let milestones = [];
@@ -62,20 +66,48 @@ const Gridora = (() => {
         };
     }
 
+    // Set a live gauge value and flash if it changed
+    function setLiveValue(id, newText) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.textContent !== newText) {
+            el.textContent = newText;
+            el.classList.remove('flash');
+            // Force reflow so the animation restarts
+            void el.offsetWidth;
+            el.classList.add('flash');
+        }
+    }
+
+    // Inject pulsing live dots into live gauge labels (once)
+    let liveDotsAdded = false;
+    function addLiveDots() {
+        if (liveDotsAdded) return;
+        liveDotsAdded = true;
+        document.querySelectorAll('#live-gauges .gauge-card .label').forEach(label => {
+            const dot = document.createElement('span');
+            dot.className = 'live-dot';
+            label.appendChild(dot);
+        });
+    }
+
     function updateGauges(d) {
+        addLiveDots();
         const gridW = Math.round(d.grid_w);
 
-        document.getElementById('grid-export-value').textContent = gridW < 0 ? Math.abs(gridW).toLocaleString() : '0';
-        document.getElementById('grid-import-value').textContent = gridW > 0 ? gridW.toLocaleString() : '0';
+        setLiveValue('grid-export-value', gridW < 0 ? Math.abs(gridW).toLocaleString() : '0');
+        setLiveValue('grid-import-value', gridW > 0 ? gridW.toLocaleString() : '0');
 
-        const consumptionW = Math.round(d.generation_w + d.grid_w);
-        document.getElementById('consumption-value').textContent = Math.max(0, consumptionW).toLocaleString();
+        // Clamp generation to 0 for consumption calc (sensor noise can go negative)
+        const consumptionW = Math.round(pos(d.generation_w) + d.grid_w);
+        setLiveValue('consumption-value', Math.max(0, consumptionW).toLocaleString());
 
-        document.getElementById('gen-value').textContent = Math.round(d.generation_w).toLocaleString();
-        document.getElementById('div-value').textContent = Math.round(d.diversion_w).toLocaleString();
-        document.getElementById('voltage-value').textContent = d.voltage.toFixed(1);
-        document.getElementById('mode-value').textContent = d.zappi_mode_name;
-        document.getElementById('charge-value').textContent = d.charge_added_kwh.toFixed(1);
+        // Display raw sensor values (negatives visible as diagnostic info)
+        setLiveValue('gen-value', Math.round(d.generation_w).toLocaleString());
+        setLiveValue('div-value', Math.round(d.diversion_w).toLocaleString());
+        setLiveValue('voltage-value', d.voltage.toFixed(1));
+        setLiveValue('mode-value', d.zappi_mode_name);
+        setLiveValue('charge-value', d.charge_added_kwh.toFixed(1));
         document.getElementById('status-bar').textContent = 'Last update: ' + d.timestamp;
     }
 
@@ -327,7 +359,7 @@ const Gridora = (() => {
             loadChart();
         });
         document.getElementById('resolution').addEventListener('change', loadChart);
-        document.getElementById('exclude-ev').addEventListener('change', loadChart);
+        document.getElementById('include-ev').addEventListener('change', loadChart);
     }
 
     function clearActiveButton() {
@@ -480,7 +512,7 @@ const Gridora = (() => {
                 // Determine the time key based on resolution
                 const isPeriod = ['weekly', 'monthly', 'quarterly', 'yearly'].includes(resolution);
                 const timeKey = isPeriod ? 'period' : (resolution === 'daily' ? 'date' : 't');
-                const excludeEV = document.getElementById('exclude-ev').checked;
+                const includeEV = document.getElementById('include-ev').checked;
 
                 // Client-side time filter (for "Last 12h")
                 if (filterAfter && !isPeriod) {
@@ -493,18 +525,19 @@ const Gridora = (() => {
                     return d[timeKey];
                 };
 
-                const evTotal = (d) => (d.diverted || 0) + (d.boosted || 0);
-                const evOffset = (d) => excludeEV ? evTotal(d) : 0;
+                // All calculations use pos() to clamp negatives from CT noise
+                const evTotal = (d) => pos(d.diverted) + pos(d.boosted);
+                const evOffset = (d) => includeEV ? 0 : evTotal(d);
 
-                chart.data.datasets[0].data = data.map(d => ({ x: toX(d), y: (d.import || 0) + (d.generation || 0) - (d.export || 0) - evOffset(d) }));
-                chart.data.datasets[1].data = data.map(d => ({ x: toX(d), y: d.generation || 0 }));
-                chart.data.datasets[2].data = data.map(d => ({ x: toX(d), y: d.export || 0 }));
-                chart.data.datasets[3].data = data.map(d => ({ x: toX(d), y: d.import || 0 }));
+                chart.data.datasets[0].data = data.map(d => ({ x: toX(d), y: pos(d.import) + pos(d.generation) - pos(d.export) - evOffset(d) }));
+                chart.data.datasets[1].data = data.map(d => ({ x: toX(d), y: pos(d.generation) }));
+                chart.data.datasets[2].data = data.map(d => ({ x: toX(d), y: pos(d.export) }));
+                chart.data.datasets[3].data = data.map(d => ({ x: toX(d), y: pos(d.import) }));
                 chart.data.datasets[4].data = data.map(d => ({ x: toX(d), y: evTotal(d) }));
-                chart.data.datasets[4].hidden = excludeEV;
+                chart.data.datasets[4].hidden = !includeEV;
                 chart.update();
 
-                updateSummary(data, excludeEV);
+                updateSummary(data, !includeEV);
                 updateExportLinks();
                 pushURL();
             })
@@ -520,12 +553,13 @@ const Gridora = (() => {
             return;
         }
 
+        // Clamp each data point before accumulating (CT noise protection)
         const totals = data.reduce((acc, d) => {
-            acc.import += d.import || 0;
-            acc.export += d.export || 0;
-            acc.generation += d.generation || 0;
-            acc.diverted += d.diverted || 0;
-            acc.boosted += d.boosted || 0;
+            acc.import += pos(d.import);
+            acc.export += pos(d.export);
+            acc.generation += pos(d.generation);
+            acc.diverted += pos(d.diverted);
+            acc.boosted += pos(d.boosted);
             return acc;
         }, { import: 0, export: 0, generation: 0, diverted: 0, boosted: 0 });
 
@@ -538,7 +572,18 @@ const Gridora = (() => {
             : '0.0';
 
         const consumptionLabel = document.querySelector('#summary .consumption .label');
-        if (consumptionLabel) consumptionLabel.textContent = excludeEV ? 'Household Only Consumption' : 'Consumption';
+        if (consumptionLabel) {
+            if (excludeEV) {
+                consumptionLabel.textContent = 'Consumption';
+            } else {
+                consumptionLabel.textContent = '';
+                consumptionLabel.appendChild(document.createTextNode('Consumption '));
+                const evSpan = document.createElement('span');
+                evSpan.textContent = '+EV';
+                evSpan.style.color = '#3b82f6';
+                consumptionLabel.appendChild(evSpan);
+            }
+        }
 
         document.getElementById('sum-consumption').textContent = consumption.toFixed(1);
         document.getElementById('sum-generation').textContent = totals.generation.toFixed(1);
@@ -577,13 +622,13 @@ const Gridora = (() => {
         const from = document.getElementById('from-date').value;
         const to = document.getElementById('to-date').value;
         const resolution = document.getElementById('resolution').value;
-        const excludeEV = document.getElementById('exclude-ev').checked;
+        const includeEV = document.getElementById('include-ev').checked;
 
         const params = new URLSearchParams();
         if (from) params.set('from', from);
         if (to) params.set('to', to);
         if (resolution) params.set('res', resolution);
-        if (excludeEV) params.set('exclude-ev', '1');
+        if (includeEV) params.set('include-ev', '1');
 
         const activeBtn = document.querySelector('.quick-range button.active');
         if (activeBtn) params.set('range', activeBtn.dataset.range);
@@ -596,8 +641,8 @@ const Gridora = (() => {
         const params = new URLSearchParams(window.location.search);
         if (!params.has('from') && !params.has('range')) return false;
 
-        const excludeEV = params.get('exclude-ev') === '1';
-        document.getElementById('exclude-ev').checked = excludeEV;
+        const includeEV = params.get('include-ev') === '1';
+        document.getElementById('include-ev').checked = includeEV;
 
         const range = params.get('range');
         if (range) {

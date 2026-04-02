@@ -154,7 +154,7 @@ func zappiModeName(mode int) string {
 	case 3:
 		return "Eco+"
 	case 4:
-		return "Stopped"
+		return "🛑"
 	default:
 		return "Unknown"
 	}

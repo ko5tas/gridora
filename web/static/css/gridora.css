@@ -101,8 +101,8 @@ input[type="date"]:focus, select:focus { border-color: var(--accent-blue); outli
     font-size: 0.75rem; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 0.05em;
 }
-.gauge-card .value { font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; line-height: 1.2; }
-.gauge-card .unit { font-size: 0.875rem; color: var(--text-muted); }
+.gauge-card .value { font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; line-height: 1.2; display: inline; }
+.gauge-card .unit { font-size: 0.875rem; color: var(--text-muted); display: inline; margin-left: 0.25rem; }
 
 /* Colour accents */
 .gauge-card.consumption .value { color: var(--consumption); }
@@ -119,6 +119,25 @@ input[type="date"]:focus, select:focus { border-color: var(--accent-blue); outli
 }
 .gauge-card.hero:hover { border-color: #fde047; }
 .gauge-card.hero .value { font-size: 2rem; }
+
+/* ── Live indicator ─────────────────────────── */
+.gauge-card .label { position: relative; }
+.gauge-card .live-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: #34d399; margin-left: 0.4rem; vertical-align: middle;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
+    50% { opacity: 0.6; box-shadow: 0 0 6px 2px rgba(52, 211, 153, 0.3); }
+}
+
+/* Value flash on update */
+.gauge-card .value.flash { animation: value-flash 0.6s ease-out; }
+@keyframes value-flash {
+    0% { filter: brightness(1.8); }
+    100% { filter: brightness(1); }
+}
 
 /* ── Status bar ─────────────────────────────── */
 .status-bar {

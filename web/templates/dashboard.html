@@ -35,8 +35,8 @@
         <button data-range="all">All</button>
     </div>
     <div class="toggle-group">
-        <input type="checkbox" id="exclude-ev">
-        <label for="exclude-ev">Exclude EV</label>
+        <input type="checkbox" id="include-ev">
+        <label for="include-ev">Include EV</label>
     </div>
 </div>
 
@@ -80,37 +80,37 @@
 
 <div id="live-gauges" style="display:none;" class="gauge-grid">
     <div class="gauge-card consumption">
-        <div class="label">Live Consumption</div>
+        <div class="label">Consumption (L)</div>
         <div class="value" id="consumption-value">—</div>
         <div class="unit">W</div>
     </div>
     <div class="gauge-card generating">
-        <div class="label">Live Solar Generation</div>
+        <div class="label">Generation (L)</div>
         <div class="value" id="gen-value">—</div>
         <div class="unit">W</div>
     </div>
     <div class="gauge-card exporting" id="card-export">
-        <div class="label">Live Grid Export</div>
+        <div class="label">Grid Export (L)</div>
         <div class="value" id="grid-export-value">0</div>
         <div class="unit">W</div>
     </div>
     <div class="gauge-card importing" id="card-import">
-        <div class="label">Live Grid Import</div>
+        <div class="label">Grid Import (L)</div>
         <div class="value" id="grid-import-value">0</div>
         <div class="unit">W</div>
     </div>
     <div class="gauge-card">
-        <div class="label">Voltage</div>
+        <div class="label">Voltage (L)</div>
         <div class="value" id="voltage-value">—</div>
         <div class="unit">V</div>
     </div>
     <div class="gauge-card diverting">
-        <div class="label">EV Diversion</div>
+        <div class="label">EV Diversion (L)</div>
         <div class="value" id="div-value">—</div>
         <div class="unit">W</div>
     </div>
     <div class="gauge-card">
-        <div class="label">Zappi</div>
+        <div class="label">Zappi (L)</div>
         <div class="value" id="mode-value" style="font-size:1.25rem">—</div>
         <div class="unit"><span id="charge-value">0.0</span> kWh added</div>
     </div>
