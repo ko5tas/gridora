@@ -1,0 +1,39 @@
+# Gridora Configuration
+# Copy to config.yaml and fill in your details.
+# Documentation: https://github.com/ko5tas/gridora
+
+# ── myenergi API credentials (required) ──────────────────────
+myenergi:
+  hub_serial: ""              # Hub serial number (myenergi app → Settings)
+  api_key: ""                 # API key (myenergi app → Settings → Generate API key)
+  # poll_interval: 60s        # How often to fetch real-time status (default: 60s)
+  # rate_limit: 1s            # Minimum gap between API requests (default: 1s)
+
+# ── Data export ──────────────────────────────────────────────
+export:
+  enabled: true
+  path: "/var/lib/gridora/exports"   # On macOS: ~/.local/share/gridora/exports
+  schedule: "daily"                   # daily | weekly | manual
+  time: "01:00"                       # When to run daily export (HH:MM)
+  formats:
+    - csv                             # csv | json
+  db_backup: true                     # Also backup SQLite DB via VACUUM INTO
+
+# ── Data collection ──────────────────────────────────────────
+collection:
+  backfill_on_startup: true           # Fetch all available historical data on first run
+  backfill_rate_limit: 5s             # Delay between backfill requests (be kind to the API)
+  daily_collection_time: "00:05"      # When to fetch yesterday's minute data (HH:MM)
+
+# ── Web dashboard ────────────────────────────────────────────
+server:
+  listen: ":8383"
+
+# ── Database ─────────────────────────────────────────────────
+database:
+  path: "/var/lib/gridora/gridora.db"  # On macOS: ~/.local/share/gridora/gridora.db
+
+# ── Logging ──────────────────────────────────────────────────
+logging:
+  level: "info"                       # debug | info | warn | error
+  format: "text"                      # text | json
