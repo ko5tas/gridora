@@ -37,3 +37,11 @@ database:
 logging:
   level: "info"                       # debug | info | warn | error
   format: "text"                      # text | json
+
+# ── Milestones (optional) ────────────────────────────────────
+# Vertical annotation lines on the chart for significant events.
+# milestones:
+#   - date: "2025-03-31"
+#     label: "Change of Ownership"
+#   - date: "2026-01-15"
+#     label: "Battery Added"

@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"time"
 )
@@ -21,8 +22,17 @@ func (s *Server) handleDashboard(w http.ResponseWriter, r *http.Request) {
 		serial = serials[0]
 	}
 
+	// Serialize milestones as safe JS for the template's <script> block
+	milestonesJSON := "[]"
+	if len(s.config.Milestones) > 0 {
+		if b, err := json.Marshal(s.config.Milestones); err == nil {
+			milestonesJSON = string(b)
+		}
+	}
+
 	data := map[string]any{
-		"Serial": serial,
+		"Serial":     serial,
+		"Milestones": template.JS(milestonesJSON),
 	}
 
 	s.templates.ExecuteTemplate(w, "dashboard.html", data)

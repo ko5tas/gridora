@@ -1,11 +1,13 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
 
 	"github.com/ko5tas/gridora/internal/energy"
+	"github.com/ko5tas/gridora/internal/store"
 )
 
 // handleEnergyMinute returns minute-level data as JSON.
@@ -127,6 +129,64 @@ func (s *Server) handleEnergyDaily(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+}
+
+// ── Period-based handlers (weekly, monthly, quarterly, yearly) ──
+
+type periodFetchFunc func(ctx context.Context, serial string, from, to time.Time) ([]store.PeriodRecord, error)
+
+// handleEnergyPeriod is a shared handler for all period aggregation endpoints.
+func (s *Server) handleEnergyPeriod(w http.ResponseWriter, r *http.Request, fetchFunc periodFetchFunc) {
+	serial, from, to, ok := s.parseEnergyParams(w, r)
+	if !ok {
+		return
+	}
+
+	records, err := fetchFunc(r.Context(), serial, from, to)
+	if err != nil {
+		http.Error(w, "Internal error", http.StatusInternalServerError)
+		return
+	}
+
+	type periodJSON struct {
+		Period        string  `json:"period"`
+		ImportKWh     float64 `json:"import"`
+		ExportKWh     float64 `json:"export"`
+		GenerationKWh float64 `json:"generation"`
+		DivertedKWh   float64 `json:"diverted"`
+		BoostedKWh    float64 `json:"boosted"`
+	}
+
+	result := make([]periodJSON, 0, len(records))
+	for _, r := range records {
+		result = append(result, periodJSON{
+			Period:        r.Period,
+			ImportKWh:     r.ImportKWh,
+			ExportKWh:     r.ExportKWh,
+			GenerationKWh: r.GenerationKWh,
+			DivertedKWh:   r.DivertedKWh,
+			BoostedKWh:    r.BoostedKWh,
+		})
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func (s *Server) handleEnergyWeekly(w http.ResponseWriter, r *http.Request) {
+	s.handleEnergyPeriod(w, r, s.store.WeeklyRecords)
+}
+
+func (s *Server) handleEnergyMonthly(w http.ResponseWriter, r *http.Request) {
+	s.handleEnergyPeriod(w, r, s.store.MonthlyRecords)
+}
+
+func (s *Server) handleEnergyQuarterly(w http.ResponseWriter, r *http.Request) {
+	s.handleEnergyPeriod(w, r, s.store.QuarterlyRecords)
+}
+
+func (s *Server) handleEnergyYearly(w http.ResponseWriter, r *http.Request) {
+	s.handleEnergyPeriod(w, r, s.store.YearlyRecords)
 }
 
 // parseEnergyParams extracts serial, from, to from query string.

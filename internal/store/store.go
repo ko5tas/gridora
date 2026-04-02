@@ -69,6 +69,16 @@ type DailyRecord struct {
 	PeakImportW         float64
 }
 
+// PeriodRecord represents an aggregated period (week, month, quarter, year).
+type PeriodRecord struct {
+	Period        string
+	ImportKWh     float64
+	ExportKWh     float64
+	GenerationKWh float64
+	DivertedKWh   float64
+	BoostedKWh    float64
+}
+
 // ExportState tracks the last successful export date per type.
 type ExportState struct {
 	ExportType string
@@ -105,6 +115,10 @@ type Store interface {
 	HourlyRecords(ctx context.Context, serial string, from, to time.Time) ([]HourlyRecord, error)
 	UpsertDailyRecord(ctx context.Context, rec *DailyRecord) error
 	DailyRecords(ctx context.Context, serial string, from, to time.Time) ([]DailyRecord, error)
+	WeeklyRecords(ctx context.Context, serial string, from, to time.Time) ([]PeriodRecord, error)
+	MonthlyRecords(ctx context.Context, serial string, from, to time.Time) ([]PeriodRecord, error)
+	QuarterlyRecords(ctx context.Context, serial string, from, to time.Time) ([]PeriodRecord, error)
+	YearlyRecords(ctx context.Context, serial string, from, to time.Time) ([]PeriodRecord, error)
 
 	// Backfill
 	GetBackfillState(ctx context.Context, serial string) (*BackfillState, error)

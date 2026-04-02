@@ -1,0 +1,177 @@
+/* Gridora — Custom dark theme (Tailwind slate palette) */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --border-card: #334155;
+    --border-hover: #475569;
+    --text: #e2e8f0;
+    --text-bright: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --accent-blue: #60a5fa;
+    --consumption: #f97316;
+    --generation: #22c55e;
+    --export: #facc15;
+    --import: #ef4444;
+    --diverted: #3b82f6;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-body);
+    color: var(--text);
+    padding: 1rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+a { color: var(--accent-blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Navigation ─────────────────────────────── */
+nav { margin-bottom: 1.5rem; }
+nav ul { list-style: none; display: flex; gap: 1rem; align-items: center; }
+nav .brand { font-weight: 700; font-size: 1.5rem; margin-right: auto; color: var(--text-bright); }
+
+/* ── Loading bar ────────────────────────────── */
+.loading-bar {
+    position: fixed; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent-blue), #34d399, var(--accent-blue));
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    opacity: 0; transition: opacity 0.2s; z-index: 100;
+}
+.loading-bar.active { opacity: 1; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ── Controls ───────────────────────────────── */
+.controls {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    margin-bottom: 1.5rem; align-items: end;
+}
+.control-group { display: flex; flex-direction: column; gap: 0.25rem; }
+.control-group label {
+    font-size: 0.75rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+input[type="date"], select {
+    background: var(--bg-card); border: 1px solid var(--border-card); color: var(--text);
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem;
+    cursor: pointer; transition: border-color 0.15s;
+}
+input[type="date"]:hover, select:hover { border-color: var(--border-hover); }
+input[type="date"]:focus, select:focus { border-color: var(--accent-blue); outline: none; }
+
+.quick-range { display: flex; gap: 0.375rem; align-items: end; flex-wrap: wrap; }
+.quick-range button {
+    background: var(--bg-card); border: 1px solid var(--border-card); color: var(--text-muted);
+    padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.8rem;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.quick-range button:hover { border-color: var(--border-hover); color: var(--text); }
+.quick-range button.active { background: #334155; border-color: var(--accent-blue); color: var(--text); }
+
+/* ── Checkbox toggle (Exclude EV) ───────────── */
+.toggle-group {
+    display: flex; align-items: center; gap: 0.4rem; align-self: center;
+}
+.toggle-group input[type="checkbox"] {
+    accent-color: var(--accent-blue); width: 16px; height: 16px; cursor: pointer;
+}
+.toggle-group label {
+    font-size: 0.85rem; color: var(--text-muted); cursor: pointer;
+}
+
+/* ── Summary + Live gauge cards ─────────────── */
+.gauge-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+.gauge-card {
+    background: var(--bg-card); border-radius: 0.5rem; padding: 1rem;
+    border: 1px solid var(--border-card); text-align: left;
+    transition: border-color 0.15s;
+}
+.gauge-card:hover { border-color: var(--border-hover); }
+.gauge-card .label {
+    font-size: 0.75rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.gauge-card .value { font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; line-height: 1.2; }
+.gauge-card .unit { font-size: 0.875rem; color: var(--text-muted); }
+
+/* Colour accents */
+.gauge-card.consumption .value { color: var(--consumption); }
+.gauge-card.generating .value { color: var(--generation); }
+.gauge-card.exporting .value { color: var(--export); }
+.gauge-card.importing .value { color: var(--import); }
+.gauge-card.diverting .value { color: var(--diverted); }
+.gauge-card.selfuse .value { color: var(--text-bright); }
+
+/* Hero card — Grid Export */
+.gauge-card.hero {
+    border-color: var(--export);
+    background: linear-gradient(135deg, #1e293b 0%, #422006 100%);
+}
+.gauge-card.hero:hover { border-color: #fde047; }
+.gauge-card.hero .value { font-size: 2rem; }
+
+/* ── Status bar ─────────────────────────────── */
+.status-bar {
+    font-size: 0.8rem; color: var(--text-muted);
+    text-align: left; margin-bottom: 1rem;
+}
+
+/* ── Chart ──────────────────────────────────── */
+.chart-wrapper {
+    background: var(--bg-card); border-radius: 0.5rem; padding: 1rem;
+    border: 1px solid var(--border-card); margin-bottom: 1.5rem;
+}
+.chart-wrapper h2 {
+    font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;
+}
+.chart-container { position: relative; height: 400px; }
+
+/* ── Custom legend ──────────────────────────── */
+.custom-legend {
+    display: flex; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap;
+}
+.legend-item {
+    display: flex; align-items: center; gap: 0.4rem; cursor: pointer;
+    font-size: 0.85rem; color: var(--text-muted); user-select: none;
+}
+.legend-item.hidden { opacity: 0.4; }
+.legend-checkbox {
+    width: 16px; height: 16px; border-radius: 3px; border: 2px solid;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.legend-checkbox svg { display: none; }
+.legend-item:not(.hidden) .legend-checkbox svg { display: block; }
+
+/* ── Custom tooltip (JS-positioned) ─────────── */
+#chart-tooltip {
+    position: absolute; pointer-events: none;
+    background: var(--bg-card); border: 1px solid var(--border-card);
+    border-radius: 6px; padding: 8px 10px;
+    font-size: 0.8rem; color: var(--text); z-index: 50;
+    transition: opacity 0.15s;
+}
+
+/* ── Export links ───────────────────────────── */
+.export-links {
+    margin-top: 0.5rem; margin-bottom: 2rem;
+    font-size: 0.9rem; color: var(--text-muted);
+}
+.export-links a { margin-right: 1rem; }
+
+/* ── Responsive ─────────────────────────────── */
+@media (max-width: 768px) {
+    .gauge-grid { grid-template-columns: repeat(2, 1fr); }
+    .controls { gap: 0.5rem; }
+    .quick-range button { padding: 0.4rem 0.5rem; font-size: 0.75rem; }
+    .chart-container { height: 300px; }
+}
