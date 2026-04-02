@@ -4,35 +4,39 @@
 
 {{define "content"}}
 <div class="controls">
-    <div>
+    <div class="control-group">
         <label for="from-date">From</label>
         <input type="date" id="from-date">
     </div>
-    <div>
+    <div class="control-group">
         <label for="to-date">To</label>
         <input type="date" id="to-date">
     </div>
-    <div>
+    <div class="control-group">
         <label for="resolution">Resolution</label>
         <select id="resolution">
             <option value="minute">Minute</option>
             <option value="hourly">Hourly</option>
             <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="yearly">Yearly</option>
         </select>
     </div>
     <div class="quick-range">
-        <button data-range="12h">Last 12h</button>
+        <button data-range="12h">Last 12 Hours</button>
         <button data-range="today" class="active">Today</button>
         <button data-range="yesterday">Yesterday</button>
-        <button data-range="7d">7d</button>
-        <button data-range="30d">30d</button>
-        <button data-range="90d">90d</button>
-        <button data-range="365d">1y</button>
+        <button data-range="7d">7 Days</button>
+        <button data-range="30d">30 Days</button>
+        <button data-range="90d">90 Days</button>
+        <button data-range="thisyear">This Year</button>
         <button data-range="all">All</button>
     </div>
-    <div style="display:flex;align-items:center;gap:0.4rem;">
-        <input type="checkbox" id="exclude-ev" style="margin:0;">
-        <label for="exclude-ev" style="font-size:0.85rem;cursor:pointer;">Exclude EV</label>
+    <div class="toggle-group">
+        <input type="checkbox" id="exclude-ev">
+        <label for="exclude-ev">Exclude EV</label>
     </div>
 </div>
 
@@ -48,7 +52,7 @@
             <div class="value" id="sum-generation">—</div>
             <div class="unit">kWh</div>
         </div>
-        <div class="gauge-card exporting">
+        <div class="gauge-card exporting hero">
             <div class="label">Grid Export</div>
             <div class="value" id="sum-export">—</div>
             <div class="unit">kWh</div>
@@ -112,8 +116,12 @@
     </div>
 </div>
 
-<div class="chart-container">
-    <canvas id="mainChart"></canvas>
+<div class="chart-wrapper">
+    <h2>Energy Overview</h2>
+    <div class="custom-legend" id="chart-legend"></div>
+    <div class="chart-container">
+        <canvas id="mainChart"></canvas>
+    </div>
 </div>
 
 <div class="export-links">
@@ -128,6 +136,6 @@
 <script src="/static/js/chartjs-adapter-date-fns.min.js"></script>
 <script src="/static/js/app.js"></script>
 <script>
-    Gridora.init("{{.Serial}}");
+    Gridora.init("{{.Serial}}", {{.Milestones}});
 </script>
 {{end}}

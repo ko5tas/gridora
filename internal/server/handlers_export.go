@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ko5tas/gridora/internal/energy"
+	"github.com/ko5tas/gridora/internal/store"
 )
 
 // handleExportDownload serves on-demand CSV or JSON export.
@@ -82,6 +84,18 @@ func (s *Server) exportCSV(w http.ResponseWriter, r *http.Request, serial string
 			})
 		}
 
+	case "weekly":
+		s.exportPeriodCSV(cw, r, serial, from, to, s.store.WeeklyRecords)
+
+	case "monthly":
+		s.exportPeriodCSV(cw, r, serial, from, to, s.store.MonthlyRecords)
+
+	case "quarterly":
+		s.exportPeriodCSV(cw, r, serial, from, to, s.store.QuarterlyRecords)
+
+	case "yearly":
+		s.exportPeriodCSV(cw, r, serial, from, to, s.store.YearlyRecords)
+
 	default: // daily
 		cw.Write([]string{"date", "import_kwh", "export_kwh", "generation_kwh", "diverted_kwh", "self_consumption_pct", "peak_generation_w"})
 		records, err := s.store.DailyRecords(r.Context(), serial, from, to)
@@ -102,6 +116,25 @@ func (s *Server) exportCSV(w http.ResponseWriter, r *http.Request, serial string
 	}
 }
 
+// exportPeriodCSV writes period records (weekly/monthly/quarterly/yearly) as CSV.
+func (s *Server) exportPeriodCSV(cw *csv.Writer, r *http.Request, serial string, from, to time.Time, fetchFunc func(ctx context.Context, serial string, from, to time.Time) ([]store.PeriodRecord, error)) {
+	cw.Write([]string{"period", "import_kwh", "export_kwh", "generation_kwh", "diverted_kwh", "boosted_kwh"})
+	records, err := fetchFunc(r.Context(), serial, from, to)
+	if err != nil {
+		return
+	}
+	for _, rec := range records {
+		cw.Write([]string{
+			rec.Period,
+			fmt.Sprintf("%.3f", rec.ImportKWh),
+			fmt.Sprintf("%.3f", rec.ExportKWh),
+			fmt.Sprintf("%.3f", rec.GenerationKWh),
+			fmt.Sprintf("%.3f", rec.DivertedKWh),
+			fmt.Sprintf("%.3f", rec.BoostedKWh),
+		})
+	}
+}
+
 func (s *Server) exportJSON(w http.ResponseWriter, r *http.Request, serial string, from, to time.Time, resolution, filename string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.json"`, filename))
@@ -114,6 +147,14 @@ func (s *Server) exportJSON(w http.ResponseWriter, r *http.Request, serial strin
 		data, err = s.store.MinuteRecords(r.Context(), serial, from, to)
 	case "hourly":
 		data, err = s.store.HourlyRecords(r.Context(), serial, from, to)
+	case "weekly":
+		data, err = s.store.WeeklyRecords(r.Context(), serial, from, to)
+	case "monthly":
+		data, err = s.store.MonthlyRecords(r.Context(), serial, from, to)
+	case "quarterly":
+		data, err = s.store.QuarterlyRecords(r.Context(), serial, from, to)
+	case "yearly":
+		data, err = s.store.YearlyRecords(r.Context(), serial, from, to)
 	default:
 		data, err = s.store.DailyRecords(r.Context(), serial, from, to)
 	}

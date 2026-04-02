@@ -10,12 +10,19 @@ import (
 )
 
 type Config struct {
-	MyEnergi   MyEnergiConfig   `yaml:"myenergi"`
-	Export     ExportConfig     `yaml:"export"`
-	Collection CollectionConfig `yaml:"collection"`
-	Server     ServerConfig     `yaml:"server"`
-	Database   DatabaseConfig   `yaml:"database"`
-	Logging    LoggingConfig    `yaml:"logging"`
+	MyEnergi   MyEnergiConfig    `yaml:"myenergi"`
+	Export     ExportConfig      `yaml:"export"`
+	Collection CollectionConfig  `yaml:"collection"`
+	Server     ServerConfig      `yaml:"server"`
+	Database   DatabaseConfig    `yaml:"database"`
+	Logging    LoggingConfig     `yaml:"logging"`
+	Milestones []MilestoneConfig `yaml:"milestones"`
+}
+
+// MilestoneConfig defines a vertical annotation line on the chart.
+type MilestoneConfig struct {
+	Date  string `yaml:"date" json:"date"`   // "2025-03-31"
+	Label string `yaml:"label" json:"label"` // "Solar Panels Installed"
 }
 
 type MyEnergiConfig struct {

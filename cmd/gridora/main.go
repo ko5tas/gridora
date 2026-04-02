@@ -83,7 +83,7 @@ func main() {
 	}
 
 	// Start HTTP server in background
-	srv := server.New(db, logger)
+	srv := server.New(db, cfg, logger)
 	httpServer := &http.Server{Addr: cfg.Server.Listen, Handler: srv.Handler()}
 	go func() {
 		logger.Info("starting web server", "listen", cfg.Server.Listen)

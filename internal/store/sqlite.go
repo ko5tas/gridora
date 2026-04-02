@@ -257,6 +257,75 @@ func (s *SQLiteStore) DailyRecords(ctx context.Context, serial string, from, to 
 	return records, rows.Err()
 }
 
+// ── Period aggregation queries (weekly, monthly, quarterly, yearly) ──
+
+// queryPeriodRecords runs a period aggregation query and scans the results.
+func (s *SQLiteStore) queryPeriodRecords(ctx context.Context, query string, serial string, from, to time.Time) ([]PeriodRecord, error) {
+	rows, err := s.db.QueryContext(ctx, query,
+		serial, from.Format("2006-01-02"), to.Format("2006-01-02"))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var records []PeriodRecord
+	for rows.Next() {
+		var r PeriodRecord
+		if err := rows.Scan(
+			&r.Period, &r.ImportKWh, &r.ExportKWh,
+			&r.GenerationKWh, &r.DivertedKWh, &r.BoostedKWh,
+		); err != nil {
+			return nil, err
+		}
+		records = append(records, r)
+	}
+	return records, rows.Err()
+}
+
+func (s *SQLiteStore) WeeklyRecords(ctx context.Context, serial string, from, to time.Time) ([]PeriodRecord, error) {
+	return s.queryPeriodRecords(ctx, `
+		SELECT strftime('%Y-W%W', date) AS period,
+			   SUM(import_kwh), SUM(export_kwh), SUM(generation_kwh),
+			   SUM(diverted_kwh), SUM(boosted_kwh)
+		FROM zappi_daily
+		WHERE serial = ? AND date >= ? AND date < ?
+		GROUP BY period
+		ORDER BY period`, serial, from, to)
+}
+
+func (s *SQLiteStore) MonthlyRecords(ctx context.Context, serial string, from, to time.Time) ([]PeriodRecord, error) {
+	return s.queryPeriodRecords(ctx, `
+		SELECT strftime('%Y-%m', date) AS period,
+			   SUM(import_kwh), SUM(export_kwh), SUM(generation_kwh),
+			   SUM(diverted_kwh), SUM(boosted_kwh)
+		FROM zappi_daily
+		WHERE serial = ? AND date >= ? AND date < ?
+		GROUP BY period
+		ORDER BY period`, serial, from, to)
+}
+
+func (s *SQLiteStore) QuarterlyRecords(ctx context.Context, serial string, from, to time.Time) ([]PeriodRecord, error) {
+	return s.queryPeriodRecords(ctx, `
+		SELECT strftime('%Y', date) || '-Q' || ((CAST(strftime('%m', date) AS INTEGER) - 1) / 3 + 1) AS period,
+			   SUM(import_kwh), SUM(export_kwh), SUM(generation_kwh),
+			   SUM(diverted_kwh), SUM(boosted_kwh)
+		FROM zappi_daily
+		WHERE serial = ? AND date >= ? AND date < ?
+		GROUP BY period
+		ORDER BY period`, serial, from, to)
+}
+
+func (s *SQLiteStore) YearlyRecords(ctx context.Context, serial string, from, to time.Time) ([]PeriodRecord, error) {
+	return s.queryPeriodRecords(ctx, `
+		SELECT strftime('%Y', date) AS period,
+			   SUM(import_kwh), SUM(export_kwh), SUM(generation_kwh),
+			   SUM(diverted_kwh), SUM(boosted_kwh)
+		FROM zappi_daily
+		WHERE serial = ? AND date >= ? AND date < ?
+		GROUP BY period
+		ORDER BY period`, serial, from, to)
+}
+
 func (s *SQLiteStore) GetBackfillState(ctx context.Context, serial string) (*BackfillState, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT serial, oldest_date, newest_date, status, last_error, updated_at

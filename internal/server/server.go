@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/ko5tas/gridora/internal/config"
 	"github.com/ko5tas/gridora/internal/store"
 	"github.com/ko5tas/gridora/web"
 )
@@ -15,15 +16,17 @@ import (
 // Server serves the Gridora dashboard and API.
 type Server struct {
 	store     store.Store
+	config    *config.Config
 	templates *template.Template
 	logger    *slog.Logger
 	router    chi.Router
 }
 
 // New creates a new HTTP server.
-func New(store store.Store, logger *slog.Logger) *Server {
+func New(store store.Store, cfg *config.Config, logger *slog.Logger) *Server {
 	s := &Server{
 		store:  store,
+		config: cfg,
 		logger: logger,
 	}
 
@@ -59,6 +62,10 @@ func (s *Server) routes() chi.Router {
 		r.Get("/energy/minute", s.handleEnergyMinute)
 		r.Get("/energy/hourly", s.handleEnergyHourly)
 		r.Get("/energy/daily", s.handleEnergyDaily)
+		r.Get("/energy/weekly", s.handleEnergyWeekly)
+		r.Get("/energy/monthly", s.handleEnergyMonthly)
+		r.Get("/energy/quarterly", s.handleEnergyQuarterly)
+		r.Get("/energy/yearly", s.handleEnergyYearly)
 		r.Get("/export", s.handleExportDownload)
 	})
 
