@@ -104,7 +104,7 @@ func (s *Server) handleSSE(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Connection", "keep-alive")
 	flusher.Flush()
 
-	ticker := time.NewTicker(60 * time.Second)
+	ticker := time.NewTicker(s.config.MyEnergi.PollInterval)
 	defer ticker.Stop()
 
 	// Send initial status immediately

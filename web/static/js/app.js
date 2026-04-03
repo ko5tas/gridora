@@ -17,6 +17,20 @@ const Gridora = (() => {
     // Raw values are still displayed — this only affects derived numbers.
     const pos = (v) => Math.max(0, v || 0);
 
+    // Display kWh values, falling back to Wh when < 1 kWh for readability.
+    function setEnergy(valueId, kwh) {
+        const el = document.getElementById(valueId);
+        if (!el) return;
+        const unitEl = el.parentElement.querySelector('.unit');
+        if (Math.abs(kwh) < 1 && kwh !== 0) {
+            el.textContent = Math.round(kwh * 1000);
+            if (unitEl) unitEl.textContent = 'Wh';
+        } else {
+            el.textContent = kwh.toFixed(1);
+            if (unitEl) unitEl.textContent = 'kWh';
+        }
+    }
+
     let chart = null;
     let serial = '';
     let milestones = [];
@@ -66,48 +80,38 @@ const Gridora = (() => {
         };
     }
 
-    // Set a live gauge value and flash if it changed
-    function setLiveValue(id, newText) {
+    // Toggle a live tile value and indicator on the parent card
+    function setLiveTile(id, text, active) {
         const el = document.getElementById(id);
         if (!el) return;
-        if (el.textContent !== newText) {
-            el.textContent = newText;
-            el.classList.remove('flash');
-            // Force reflow so the animation restarts
-            void el.offsetWidth;
-            el.classList.add('flash');
-        }
-    }
-
-    // Inject pulsing live dots into live gauge labels (once)
-    let liveDotsAdded = false;
-    function addLiveDots() {
-        if (liveDotsAdded) return;
-        liveDotsAdded = true;
-        document.querySelectorAll('#live-gauges .gauge-card .label').forEach(label => {
-            const dot = document.createElement('span');
-            dot.className = 'live-dot';
-            label.appendChild(dot);
-        });
+        el.textContent = text;
+        const card = el.closest('.gauge-card');
+        if (card) card.classList.toggle('live-active', active);
     }
 
     function updateGauges(d) {
-        addLiveDots();
         const gridW = Math.round(d.grid_w);
+        const genW = Math.round(d.generation_w);
+        const exportW = gridW < 0 ? Math.abs(gridW) : 0;
+        const importW = gridW > 0 ? gridW : 0;
+        const consumptionW = Math.max(0, Math.round(pos(d.generation_w) + d.grid_w));
 
-        setLiveValue('grid-export-value', gridW < 0 ? Math.abs(gridW).toLocaleString() : '0');
-        setLiveValue('grid-import-value', gridW > 0 ? gridW.toLocaleString() : '0');
+        // 4 live power tiles — continuous pulse when value > 0
+        setLiveTile('consumption-value', consumptionW.toLocaleString(), consumptionW > 0);
+        setLiveTile('gen-value', genW.toLocaleString(), genW > 0);
+        setLiveTile('grid-export-value', exportW.toLocaleString(), exportW > 0);
+        setLiveTile('grid-import-value', importW.toLocaleString(), importW > 0);
 
-        // Clamp generation to 0 for consumption calc (sensor noise can go negative)
-        const consumptionW = Math.round(pos(d.generation_w) + d.grid_w);
-        setLiveValue('consumption-value', Math.max(0, consumptionW).toLocaleString());
+        // Remaining tiles — plain text, no animation
+        const divEl = document.getElementById('div-value');
+        if (divEl) divEl.textContent = Math.round(d.diversion_w).toLocaleString();
+        const voltEl = document.getElementById('voltage-value');
+        if (voltEl) voltEl.textContent = d.voltage.toFixed(1);
+        const modeEl = document.getElementById('mode-value');
+        if (modeEl) modeEl.textContent = d.zappi_mode_name;
+        const chargeEl = document.getElementById('charge-value');
+        if (chargeEl) chargeEl.textContent = d.charge_added_kwh.toFixed(1);
 
-        // Display raw sensor values (negatives visible as diagnostic info)
-        setLiveValue('gen-value', Math.round(d.generation_w).toLocaleString());
-        setLiveValue('div-value', Math.round(d.diversion_w).toLocaleString());
-        setLiveValue('voltage-value', d.voltage.toFixed(1));
-        setLiveValue('mode-value', d.zappi_mode_name);
-        setLiveValue('charge-value', d.charge_added_kwh.toFixed(1));
         document.getElementById('status-bar').textContent = 'Last update: ' + d.timestamp;
     }
 
@@ -585,11 +589,11 @@ const Gridora = (() => {
             }
         }
 
-        document.getElementById('sum-consumption').textContent = consumption.toFixed(1);
-        document.getElementById('sum-generation').textContent = totals.generation.toFixed(1);
-        document.getElementById('sum-export').textContent = totals.export.toFixed(1);
-        document.getElementById('sum-import').textContent = totals.import.toFixed(1);
-        document.getElementById('sum-diverted').textContent = evTotal.toFixed(1);
+        setEnergy('sum-consumption', consumption);
+        setEnergy('sum-generation', totals.generation);
+        setEnergy('sum-export', totals.export);
+        setEnergy('sum-import', totals.import);
+        setEnergy('sum-diverted', evTotal);
 
         const evDetail = document.getElementById('ev-detail');
         if (evDetail) {

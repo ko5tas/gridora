@@ -6,8 +6,8 @@
 myenergi:
   hub_serial: ""              # Hub serial number (myenergi app → Settings)
   api_key: ""                 # API key (myenergi app → Settings → Generate API key)
-  # poll_interval: 60s        # How often to fetch real-time status (default: 60s)
-  # rate_limit: 1s            # Minimum gap between API requests (default: 1s)
+  # poll_interval: 60s        # How often to fetch real-time status (default: 60s, min: 10s)
+  # rate_limit: 1s            # Minimum gap between any API requests (default: 1s, min: 500ms)
 
 # ── Data export ──────────────────────────────────────────────
 export:

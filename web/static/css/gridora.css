@@ -118,26 +118,34 @@ input[type="date"]:focus, select:focus { border-color: var(--accent-blue); outli
     background: linear-gradient(135deg, #1e293b 0%, #422006 100%);
 }
 .gauge-card.hero:hover { border-color: #fde047; }
-.gauge-card.hero .value { font-size: 2rem; }
 
-/* ── Live indicator ─────────────────────────── */
-.gauge-card .label { position: relative; }
-.gauge-card .live-dot {
-    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-    background: #34d399; margin-left: 0.4rem; vertical-align: middle;
-    animation: pulse-dot 2s ease-in-out infinite;
-}
-@keyframes pulse-dot {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); }
-    50% { opacity: 0.6; box-shadow: 0 0 6px 2px rgba(52, 211, 153, 0.3); }
-}
 
-/* Value flash on update */
-.gauge-card .value.flash { animation: value-flash 0.6s ease-out; }
-@keyframes value-flash {
-    0% { filter: brightness(1.8); }
-    100% { filter: brightness(1); }
+/* ── Live indicator (breathing border + corner beacon) ── */
+@keyframes breathe-border {
+    0%, 100% { border-color: var(--border-card); }
+    50% { border-color: var(--glow); }
 }
+@keyframes beacon {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+}
+.gauge-card.live-active {
+    position: relative;
+    animation: breathe-border 2.5s ease-in-out infinite;
+}
+.gauge-card.live-active::before {
+    content: ''; position: absolute; top: 10px; right: 10px;
+    width: 8px; height: 8px; border-radius: 50%;
+    animation: beacon 2s ease-in-out infinite;
+}
+.gauge-card.live-active.consumption { --glow: #f97316; }
+.gauge-card.live-active.generating { --glow: #22c55e; }
+.gauge-card.live-active.exporting { --glow: #facc15; }
+.gauge-card.live-active.importing { --glow: #ef4444; }
+.gauge-card.live-active.consumption::before { background: #f97316; }
+.gauge-card.live-active.generating::before { background: #22c55e; }
+.gauge-card.live-active.exporting::before { background: #facc15; }
+.gauge-card.live-active.importing::before { background: #ef4444; }
 
 /* ── Status bar ─────────────────────────────── */
 .status-bar {
