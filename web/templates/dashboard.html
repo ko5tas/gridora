@@ -42,33 +42,33 @@
 
 <div id="summary" style="display:none;">
     <div class="gauge-grid">
-        <div class="gauge-card consumption">
+        <div class="gauge-card consumption" title="Total energy used by the house for the selected period.&#10;Calculated as: Import + Generation − Export.&#10;If 'Include EV' is off, EV charging energy is subtracted.">
             <div class="label">Consumption</div>
             <div class="value" id="sum-consumption">—</div>
             <div class="unit">kWh</div>
         </div>
-        <div class="gauge-card generating">
+        <div class="gauge-card generating" title="Total solar energy generated for the selected period.&#10;Measured directly by the Zappi CT clamp on the solar inverter.">
             <div class="label">Generation</div>
             <div class="value" id="sum-generation">—</div>
             <div class="unit">kWh</div>
         </div>
-        <div class="gauge-card exporting hero">
+        <div class="gauge-card exporting hero" title="Total energy exported (sold) to the grid for the selected period.&#10;This is surplus solar generation that the house did not use.">
             <div class="label">Grid Export</div>
             <div class="value" id="sum-export">—</div>
             <div class="unit">kWh</div>
         </div>
-        <div class="gauge-card importing">
+        <div class="gauge-card importing" title="Total energy imported (bought) from the grid for the selected period.&#10;This is energy the house needed beyond what solar provided.">
             <div class="label">Grid Import</div>
             <div class="value" id="sum-import">—</div>
             <div class="unit">kWh</div>
         </div>
-        <div class="gauge-card diverting">
+        <div class="gauge-card diverting" title="Total energy diverted to EV charging for the selected period.&#10;Includes both solar-diverted and grid-boosted charging.">
             <div class="label">EV Charging</div>
             <div class="value" id="sum-diverted">—</div>
             <div class="unit">kWh</div>
             <div id="ev-detail" style="display:none;font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;"></div>
         </div>
-        <div class="gauge-card selfuse">
+        <div class="gauge-card selfuse" title="Percentage of solar generation consumed on-site.&#10;Calculated as: (Generation − Export) ÷ Generation × 100.&#10;100% means all solar was used; 0% means all was exported.">
             <div class="label">Self-Consumption</div>
             <div class="value" id="sum-selfuse">—</div>
             <div class="unit">%</div>
@@ -79,22 +79,22 @@
 <div class="status-bar" id="status-bar" style="display:none;">Connecting...</div>
 
 <div id="live-gauges" style="display:none;" class="gauge-grid">
-    <div class="gauge-card consumption">
+    <div class="gauge-card consumption" title="Real-time power being consumed by the house right now.&#10;Calculated as: Generation + Grid (positive = importing).&#10;Animates when value > 0. Polled every 20 seconds.">
         <div class="label">Consumption (L)</div>
         <div class="value" id="consumption-value">—</div>
         <div class="unit">W</div>
     </div>
-    <div class="gauge-card generating">
+    <div class="gauge-card generating" title="Real-time solar power being generated right now.&#10;Measured by the Zappi CT clamp on the solar inverter.&#10;Animates when value > 0. Polled every 20 seconds.">
         <div class="label">Generation (L)</div>
         <div class="value" id="gen-value">—</div>
         <div class="unit">W</div>
     </div>
-    <div class="gauge-card exporting" id="card-export">
+    <div class="gauge-card exporting" id="card-export" title="Real-time power being exported to the grid right now.&#10;Shows the grid reading when negative (surplus solar).&#10;Animates when value > 0. Polled every 20 seconds.">
         <div class="label">Grid Export (L)</div>
         <div class="value" id="grid-export-value">0</div>
         <div class="unit">W</div>
     </div>
-    <div class="gauge-card importing" id="card-import">
+    <div class="gauge-card importing" id="card-import" title="Real-time power being imported from the grid right now.&#10;Shows the grid reading when positive (drawing from grid).&#10;Animates when value > 0. Polled every 20 seconds.">
         <div class="label">Grid Import (L)</div>
         <div class="value" id="grid-import-value">0</div>
         <div class="unit">W</div>
@@ -106,17 +106,17 @@
             <div class="meter-digit red"><div class="meter-roll">0 1 2 3 4 5 6 7 8 9 0</div></div>
         </div>
     </div>
-    <div class="gauge-card">
+    <div class="gauge-card" title="Real-time mains voltage at the meter point.&#10;Measured by the Zappi. Normal UK range: 216V–253V.&#10;Polled every 20 seconds.">
         <div class="label">Voltage (L)</div>
         <div class="value" id="voltage-value">—</div>
         <div class="unit">V</div>
     </div>
-    <div class="gauge-card diverting">
+    <div class="gauge-card diverting" title="Real-time power being diverted to the EV charger right now.&#10;Measured by the Zappi CT clamp.&#10;Polled every 20 seconds.">
         <div class="label">EV Diversion (L)</div>
         <div class="value" id="div-value">—</div>
         <div class="unit">W</div>
     </div>
-    <div class="gauge-card">
+    <div class="gauge-card" title="Current Zappi operating mode and energy added this session.&#10;Modes: Off, Fast, Eco, Eco+.&#10;Polled every 20 seconds.">
         <div class="label">Zappi (L)</div>
         <div class="value" id="mode-value" style="font-size:1.25rem">—</div>
         <div class="unit"><span id="charge-value">0.0</span> kWh added</div>

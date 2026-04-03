@@ -2,8 +2,8 @@
 const Gridora = (() => {
     const COLORS = {
         consumption: '#f97316',
-        generation:  '#22c55e',
-        export:      '#facc15',
+        generation:  '#facc15',
+        export:      '#22c55e',
         import:      '#ef4444',
         diverted:    '#3b82f6',
     };
@@ -211,6 +211,14 @@ const Gridora = (() => {
 
     const crosshairPlugin = {
         id: 'crosshair',
+        afterEvent(chart, args) {
+            const area = chart.chartArea;
+            if (args.event.type === 'mousemove' && area) {
+                chart._crosshairY = args.event.y;
+            } else if (args.event.type === 'mouseout') {
+                chart._crosshairY = null;
+            }
+        },
         afterDraw(chart) {
             if (!chart._active || !chart._active.length) return;
             const ctx = chart.ctx;
@@ -222,10 +230,22 @@ const Gridora = (() => {
             ctx.setLineDash([4, 4]);
             ctx.lineWidth = 1;
             ctx.strokeStyle = '#64748b';
+
+            // Vertical crosshair
             ctx.beginPath();
             ctx.moveTo(x, area.top);
             ctx.lineTo(x, area.bottom);
             ctx.stroke();
+
+            // Horizontal crosshair — follows cursor Y
+            const y = chart._crosshairY;
+            if (y != null && y >= area.top && y <= area.bottom) {
+                ctx.beginPath();
+                ctx.moveTo(area.left, y);
+                ctx.lineTo(area.right, y);
+                ctx.stroke();
+            }
+
             ctx.restore();
         }
     };
@@ -406,6 +426,11 @@ const Gridora = (() => {
 
             item.appendChild(box);
             item.appendChild(label);
+
+            // Sync initial hidden state with legend appearance
+            if (!chart.isDatasetVisible(i)) {
+                item.classList.add('hidden');
+            }
 
             item.addEventListener('click', () => {
                 const visible = chart.isDatasetVisible(i);
@@ -631,6 +656,7 @@ const Gridora = (() => {
                 }
 
                 chart.update();
+                buildLegend();
 
                 updateSummary(data, !includeEV);
                 updateExportLinks();

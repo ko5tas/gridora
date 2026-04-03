@@ -13,8 +13,8 @@
     --text-dim: #64748b;
     --accent-blue: #60a5fa;
     --consumption: #f97316;
-    --generation: #22c55e;
-    --export: #facc15;
+    --generation: #facc15;
+    --export: #22c55e;
     --import: #ef4444;
     --diverted: #3b82f6;
 }
@@ -114,10 +114,10 @@ input[type="date"]:focus, select:focus { border-color: var(--accent-blue); outli
 
 /* Hero card — Grid Export */
 .gauge-card.hero {
-    border-color: var(--export);
-    background: linear-gradient(135deg, #1e293b 0%, #422006 100%);
+    border-color: var(--border-card);
+    background: linear-gradient(135deg, #1e293b 0%, #052e16 100%);
 }
-.gauge-card.hero:hover { border-color: #fde047; }
+.gauge-card.hero:hover { border-color: var(--border-hover); }
 
 
 /* ── Live indicator (breathing border + corner beacon) ── */
@@ -139,8 +139,8 @@ input[type="date"]:focus, select:focus { border-color: var(--accent-blue); outli
     animation: beacon 2s ease-in-out infinite;
 }
 .gauge-card.live-active.consumption { --glow: #f97316; }
-.gauge-card.live-active.generating { --glow: #22c55e; }
-.gauge-card.live-active.exporting { --glow: #facc15; }
+.gauge-card.live-active.generating { --glow: #facc15; }
+.gauge-card.live-active.exporting { --glow: #22c55e; }
 .gauge-card.live-active.importing { --glow: #ef4444; }
 .gauge-card.live-active.consumption::before { background: #f97316; }
 
@@ -167,8 +167,43 @@ input[type="date"]:focus, select:focus { border-color: var(--accent-blue); outli
     border-radius: 50%;
     animation: chomp 0.4s ease-in-out infinite, pacman-drift 3s linear infinite;
 }
-.gauge-card.live-active.generating::before { background: #22c55e; }
-.gauge-card.live-active.exporting::before { background: #facc15; }
+/* Spinning sun on generation tile */
+@keyframes sun-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.gauge-card.live-active.generating::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 16px;
+    height: 16px;
+    background:
+        radial-gradient(circle, #facc15 4px, transparent 4.5px),
+        repeating-conic-gradient(#facc15 0deg 8deg, transparent 8deg 30deg);
+    border-radius: 50%;
+    animation: sun-spin 6s linear infinite;
+}
+.gauge-card.live-active.generating::before { background: #facc15; }
+/* Rising bolt on grid export tile */
+@keyframes bolt-rise {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    70% { opacity: 0; transform: translateY(-18px) scale(0.7); }
+    100% { opacity: 0; transform: translateY(-18px) scale(0.7); }
+}
+.gauge-card.live-active.exporting::after {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    right: 10px;
+    width: 10px;
+    height: 14px;
+    background: #facc15;
+    clip-path: polygon(50% 100%, 15% 55%, 42% 55%, 20% 0%, 85% 60%, 55% 60%, 80% 100%);
+    animation: bolt-rise 1.6s ease-out infinite;
+}
+.gauge-card.live-active.exporting::before { background: #22c55e; }
 .gauge-card.live-active.importing::before { background: #ef4444; }
 
 /* Mini electricity meter on grid import tile */
