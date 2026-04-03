@@ -143,9 +143,75 @@ input[type="date"]:focus, select:focus { border-color: var(--accent-blue); outli
 .gauge-card.live-active.exporting { --glow: #facc15; }
 .gauge-card.live-active.importing { --glow: #ef4444; }
 .gauge-card.live-active.consumption::before { background: #f97316; }
+
+/* Pac-Man on consumption tile — faces left, drifts across */
+@keyframes chomp {
+    0%, 100% { clip-path: polygon(0% 25%, 50% 50%, 0% 75%, 0% 100%, 100% 100%, 100% 0%, 0% 0%); }
+    50% { clip-path: polygon(0% 50%, 50% 50%, 0% 50%, 0% 100%, 100% 100%, 100% 0%, 0% 0%); }
+}
+@keyframes pacman-drift {
+    0%     { right: 8px;  transform: scaleX(1); }
+    48%    { right: 35%;  transform: scaleX(1); }
+    52%    { right: 35%;  transform: scaleX(-1); }
+    98%    { right: 8px;  transform: scaleX(-1); }
+    100%   { right: 8px;  transform: scaleX(1); }
+}
+.gauge-card.live-active.consumption::after {
+    content: '';
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 16px;
+    height: 16px;
+    background: #f97316;
+    border-radius: 50%;
+    animation: chomp 0.4s ease-in-out infinite, pacman-drift 3s linear infinite;
+}
 .gauge-card.live-active.generating::before { background: #22c55e; }
 .gauge-card.live-active.exporting::before { background: #facc15; }
 .gauge-card.live-active.importing::before { background: #ef4444; }
+
+/* Mini electricity meter on grid import tile */
+.mini-meter {
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    display: none;
+    gap: 1px;
+    padding: 2px;
+    background: #111;
+    border-radius: 2px;
+}
+.mini-meter.active { display: flex; }
+
+.meter-digit {
+    width: 9px;
+    height: 11px;
+    background: #000;
+    overflow: hidden;
+    border-radius: 1px;
+}
+.meter-digit.red {
+    border-color: #ef4444;
+    background: #fff;
+}
+.meter-digit.red .meter-roll { color: #ef4444; }
+
+.meter-roll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 9px;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: #e2e8f0;
+    line-height: 11px;
+    word-spacing: 100vw; /* forces each digit onto its own line */
+    will-change: transform;
+    transition: transform 0.4s ease;
+}
 
 /* ── Status bar ─────────────────────────────── */
 .status-bar {

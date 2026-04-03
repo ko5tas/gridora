@@ -89,6 +89,84 @@ const Gridora = (() => {
         if (card) card.classList.toggle('live-active', active);
     }
 
+    // ── Mini electricity meter (mechanical counter) ──
+    // Red digit scrolls continuously; white digits click on carry-over.
+    let meterRaf = null;
+    let meterStart = null;
+    let meterPrevDigits = [0, 0, 0, 0];
+    let meterRolls = null;    // cached roll elements
+    const DIGIT_H = 11;       // matches .meter-digit height / line-height
+    const CYCLE_MS = 16000;   // time for the red digit to complete one 0→9 rotation
+
+    function startMeter() {
+        if (meterRaf) return;
+        const meter = document.getElementById('import-meter');
+        if (!meter) return;
+
+        meterStart = null;
+        meterPrevDigits = [0, 0, 0, 0];
+        meterRolls = meter.querySelectorAll('.meter-roll');
+        meterRolls.forEach(r => {
+            r.style.transition = 'none';
+            r.style.transform = 'translateY(0)';
+        });
+        meter.classList.add('active');
+        meterRaf = requestAnimationFrame(meterFrame);
+    }
+
+    function stopMeter() {
+        if (meterRaf) { cancelAnimationFrame(meterRaf); meterRaf = null; }
+        meterStart = null;
+        const meter = document.getElementById('import-meter');
+        if (meter) meter.classList.remove('active');
+    }
+
+    function meterFrame(now) {
+        if (!meterStart) meterStart = now;
+        const elapsed = now - meterStart;
+
+        // Red digit: continuous fractional position (0.0 → 9.999…)
+        const redPos = (elapsed % CYCLE_MS) / CYCLE_MS * 10;
+
+        // Number of completed red cycles → drives white digit carry-over
+        const cycles = Math.floor(elapsed / CYCLE_MS);
+
+        if (meterRolls && meterRolls.length === 5) {
+            const rolls = meterRolls;
+            // Red digit — smooth, no CSS transition, updated every frame
+            rolls[4].style.transition = 'none';
+            rolls[4].style.transform = 'translateY(-' + (redPos * DIGIT_H) + 'px)';
+
+            // White digits — step with transition on carry-over
+            const digits = [
+                Math.floor(cycles / 1000) % 10,
+                Math.floor(cycles / 100) % 10,
+                Math.floor(cycles / 10) % 10,
+                cycles % 10,
+            ];
+
+            digits.forEach((d, i) => {
+                if (d === meterPrevDigits[i]) return;
+                const roll = rolls[i];
+                roll.style.transition = 'transform 0.4s ease';
+
+                if (meterPrevDigits[i] === 9 && d === 0) {
+                    // Wrap: scroll to duplicate "0" at position 10, then snap
+                    roll.style.transform = 'translateY(-' + (10 * DIGIT_H) + 'px)';
+                    setTimeout(() => {
+                        roll.style.transition = 'none';
+                        roll.style.transform = 'translateY(0)';
+                    }, 400);
+                } else {
+                    roll.style.transform = 'translateY(-' + (d * DIGIT_H) + 'px)';
+                }
+                meterPrevDigits[i] = d;
+            });
+        }
+
+        meterRaf = requestAnimationFrame(meterFrame);
+    }
+
     function updateGauges(d) {
         const gridW = Math.round(d.grid_w);
         const genW = Math.round(d.generation_w);
@@ -101,6 +179,9 @@ const Gridora = (() => {
         setLiveTile('gen-value', genW.toLocaleString(), genW > 0);
         setLiveTile('grid-export-value', exportW.toLocaleString(), exportW > 0);
         setLiveTile('grid-import-value', importW.toLocaleString(), importW > 0);
+
+        // Mini electricity meter — runs only when importing
+        if (importW > 0) { startMeter(); } else { stopMeter(); }
 
         // Remaining tiles — plain text, no animation
         const divEl = document.getElementById('div-value');
