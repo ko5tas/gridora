@@ -312,7 +312,7 @@ const Gridora = (() => {
 
             const val = document.createElement('strong');
             val.style.marginLeft = '4px';
-            val.textContent = dp.formattedValue + ' kWh';
+            val.textContent = dp.formattedValue + ' ' + chart.options.scales.y.title.text;
 
             row.appendChild(box);
             row.appendChild(label);
@@ -497,7 +497,7 @@ const Gridora = (() => {
                 y.setDate(y.getDate() - 1);
                 from = isoDate(y);
                 to = isoDate(y);
-                resolution = 'minute';
+                resolution = 'hourly';
                 filterAfter = null;
                 setLiveMode(false);
                 break;
@@ -620,6 +620,16 @@ const Gridora = (() => {
                 chart.data.datasets[3].data = data.map(d => ({ x: toX(d), y: pos(d.import) }));
                 chart.data.datasets[4].data = data.map(d => ({ x: toX(d), y: evTotal(d) }));
                 chart.data.datasets[4].hidden = !includeEV;
+
+                // Auto-switch to Wh when all values are below 1 kWh
+                const maxY = Math.max(...chart.data.datasets.flatMap(ds => ds.data.map(p => p.y)));
+                if (maxY < 1 && maxY > 0) {
+                    chart.data.datasets.forEach(ds => { ds.data.forEach(p => { p.y *= 1000; }); });
+                    chart.options.scales.y.title.text = 'Wh';
+                } else {
+                    chart.options.scales.y.title.text = 'kWh';
+                }
+
                 chart.update();
 
                 updateSummary(data, !includeEV);
